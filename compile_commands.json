@@ -1,0 +1,36 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Iinclude",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-std=c2x",
+      "-o",
+      "astrac",
+      "src/sprout.c"
+    ],
+    "directory": "/home/lencone/Code/c/astra",
+    "file": "/home/lencone/Code/c/astra/src/sprout.c",
+    "output": "/home/lencone/Code/c/astra/astrac"
+  },
+  {
+    "arguments": [
+      "/usr/bin/gcc",
+      "-c",
+      "-Iinclude",
+      "-Wall",
+      "-Wextra",
+      "-pedantic",
+      "-std=c2x",
+      "-o",
+      "astrac",
+      "src/main.c"
+    ],
+    "directory": "/home/lencone/Code/c/astra",
+    "file": "/home/lencone/Code/c/astra/src/main.c",
+    "output": "/home/lencone/Code/c/astra/astrac"
+  }
+]
