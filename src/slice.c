@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "lib.h"
@@ -34,6 +35,9 @@ bool slice_eq(Slice a, Slice b)
 
 bool slice_predicate(Slice s, int (*predicate)(int))
 {
+    if (s.length == 0) {
+        return false;
+    }
     for (size_t i = 0; i < s.length; i++) {
         if (!predicate(s.data[i])) {
             return false;
@@ -55,6 +59,11 @@ size_t slice_usize(Slice s, Slice *endslice)
         *endslice = s;
     }
     return result;
+}
+
+uint64_t slice_uint64(Slice s, Slice *endslice)
+{
+    return slice_usize(s, endslice);
 }
 
 Slice slice_triml(Slice s, char const *targets)

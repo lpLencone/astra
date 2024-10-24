@@ -2,6 +2,7 @@
 #define ASTRA_SLICE_H_
 
 #include <stddef.h>
+#include <stdint.h>
 
 typedef struct {
     char const *data;
@@ -9,6 +10,7 @@ typedef struct {
 } Slice;
 
 #define SLICE_NULL (Slice) { .data = NULL, .length = 0 }
+#define SLICEFMT(s) (int) (s).length, (s).data
 
 Slice slice_make(char const *begin, size_t length);
 Slice slice_from_bounds(char const *begin, char const *end);
@@ -28,6 +30,7 @@ bool slice_predicate(Slice s, int (*predicate)(int));
 #define slice_isdigit(s) slice_predicate(s, isdigit)
 
 size_t slice_usize(Slice s, Slice *endslice);
+uint64_t slice_uint64(Slice s, Slice *endslice);
 
 Slice slice_triml(Slice s, char const *targets);
 Slice slice_token(Slice *s, char const *delimiter);

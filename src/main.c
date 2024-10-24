@@ -17,6 +17,7 @@
 #include "parser.h"
 #include "slice.h"
 #include "sprout.h"
+#include "symbolmap.h"
 
 void file_read_to_cstr(char const *filename, char **buffer, size_t *size)
 {
@@ -26,7 +27,7 @@ void file_read_to_cstr(char const *filename, char **buffer, size_t *size)
     *size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     *buffer = calloc(1, *size + 1);
-    unwrap_en(fread(*buffer, 1, *size, fp) != *size, "Could not fwrite");
+    unwrap_en(fread(*buffer, 1, *size, fp) != *size, "Could not fread \"%s\"", filename);
     fclose(fp);
 }
 
@@ -38,7 +39,7 @@ int main(int argc, char *argv[])
     } cli_options = { .output_filename = "out" };
 
     while (1) {
-        static struct option options[] = {
+        struct option options[] = {
             { "output", required_argument, 0,  'o' },
             {     NULL,                 0, 0, '\0' },
         };
@@ -69,14 +70,12 @@ int main(int argc, char *argv[])
     size_t bufferlen;
     file_read_to_cstr(cli_options.input_filename, &buffer, &bufferlen);
 
+    SymbolMap sm = {0};
+    symbolmap_new_map(&sm);
     DArrayToken tokens = lexer_analyse(slice_cstr(buffer));
-
-    NodeExit root;
-    expect(parse(tokens, &root), "Could not parse tokens");
-
-    Sprout assembly = generator_generate(&root);
-
-    printf("Generating assembly...\n\n%s\n", assembly.data);
+    NodeProg prog = parse(tokens, &sm);
+    Sprout assembly = generate(&prog);
+    printf("%s\n", assembly.data);
 
     // Write assembly to file
     FILE *fp = fopen("out.asm", "w");
@@ -85,11 +84,11 @@ int main(int argc, char *argv[])
     fclose(fp);
 
     // Assemble and link and clean
-    system("nasm -felf64 -o out.o out.asm");
+    system("nasm -felf64 -g -F dwarf -o out.o out.asm");
     char command_buffer[512] = { 0 };
     snprintf(command_buffer, 512, "ld -o %s out.o", cli_options.output_filename);
     system(command_buffer);
-    system("rm out.asm out.o");
+    system("rm out.o");
 
     sprout_pluck(&assembly);
     da_free(&tokens);

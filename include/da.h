@@ -71,5 +71,7 @@
     } while (false)
 
 #define da_remove(a, index) da_remove_n(a, 1, index)
+#define da_pop_n(a, n) da_remove_n(a, n, (a)->length - n)
+#define da_pop(a) da_pop_n(a, 1)
 
 #endif // DA_H_

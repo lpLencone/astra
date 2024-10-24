@@ -14,54 +14,49 @@ DArrayToken lexer_analyse(Slice src)
 {
     DArrayToken tokens = { 0 };
 
-    Slice token_slice;
-    src = slice_triml(src, whitespace);
-    while (!slice_isnull((token_slice = slice_token(&src, separators)))) {
-        src = slice_triml(src, whitespace);
+    Slice token_lexeme;
+    while (!slice_isnull(
+            (token_lexeme = slice_triml(slice_token(&src, separators), whitespace)))) {
 
-        Token tok = { 0 };
-        if (isalpha(*token_slice.data)) {
-            if (slice_isalnum(token_slice)) {
+        Token tok = { .lexeme = token_lexeme };
+        if (isalpha(*token_lexeme.data)) {
+            if (slice_isalnum(token_lexeme)) {
                 tok.kind = TokenKind_Identifier;
-                tok.slice = token_slice;
-                if (slice_eq_cstr(tok.slice, "exit")) {
+                if (slice_eq_cstr(tok.lexeme, "exit")) {
                     tok.kind = TokenKind_Exit;
-                } else {
-                    panic("Cannot handle non-\"exit\" identifiers");
+                } else if (slice_eq_cstr(tok.lexeme, "i64")) {
+                    tok.kind = TokenKind_I64;
                 }
             } else {
-                panic("Invalid token.");
+                panic("Invalid token \"%.*s\"", SLICEFMT(token_lexeme));
             }
 
-        } else if (slice_isdigit(token_slice)) {
+        } else if (slice_isdigit(token_lexeme)) {
             tok.kind = TokenKind_IntLit;
-            tok.slice = token_slice;
-
-        } else if (slice_eq_cstr(token_slice, ";")) {
+            // Todo: uint64 -> int64
+            tok.intlit = slice_uint64(tok.lexeme, NULL);
+        } else if (slice_eq_cstr(token_lexeme, ";")) {
             tok.kind = TokenKind_Semicolon;
-            tok.slice = token_slice;
+        } else if (slice_eq_cstr(token_lexeme, "(")) {
+            tok.kind = TokenKind_LeftParen;
+        } else if (slice_eq_cstr(token_lexeme, ")")) {
+            tok.kind = TokenKind_RightParen;
+        } else if (slice_eq_cstr(token_lexeme, "=")) {
+            tok.kind = TokenKind_Assign;
+        } else if (slice_eq_cstr(token_lexeme, "+")) {
+            tok.kind = TokenKind_AddSign;
+        } else if (slice_eq_cstr(token_lexeme, "-")) {
+            tok.kind = TokenKind_SubSign;
+        } else if (slice_eq_cstr(token_lexeme, "*")) {
+            tok.kind = TokenKind_MulSign;
+        } else if (slice_eq_cstr(token_lexeme, "/")) {
+            tok.kind = TokenKind_DivSign;
 
         } else {
-            panic("What is this? %s\n", src.data);
+            panic("What is this? \"%.*s\"\n", SLICEFMT(token_lexeme));
         }
 
         da_push(&tokens, &tok);
     }
     return tokens;
-}
-
-char const *token_kind_cstr(TokenKind kind)
-{
-    switch (kind) {
-        case TokenKind_Exit:
-            return "TokenKind_Exit";
-        case TokenKind_Identifier:
-            return "TokenKind_Identifier";
-        case TokenKind_IntLit:
-            return "TokenKind_IntLit";
-        case TokenKind_Semicolon:
-            return "TokenKind_Semicolon";
-        default:
-            panic("Unreachable");
-    }
 }

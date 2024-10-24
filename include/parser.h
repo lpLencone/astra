@@ -3,16 +3,10 @@
 #ifndef ASTRA_PARSER_H_
 #define ASTRA_PARSER_H_
 
-#include "lexer.h" // Including definitions for Token
+#include "astnode.h"
+#include "token.h"
+#include "symbolmap.h"
 
-typedef struct {
-    Token token;
-} NodeExpr;
-
-typedef struct {
-    NodeExpr expr;
-} NodeExit;
-
-bool parse(DArrayToken tokens, NodeExit *root);
+NodeProg parse(DArrayToken tokens, SymbolMap *sm);
 
 #endif // ASTRA_PARSER_H_
