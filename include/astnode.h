@@ -1,8 +1,8 @@
 #ifndef ASTRA_ASTNODE_H_
 #define ASTRA_ASTNODE_H_
 
-#include "symbolmap.h"
 #include "token.h"
+#include "symbolmap.h"
 
 typedef enum {
     NodeKind_Expr = 1,

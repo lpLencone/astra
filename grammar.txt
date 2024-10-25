@@ -1,42 +1,46 @@
-[prog]  -> [stmts]
-[stmts] -> [stmts] [stmt] | ϵ
-[stmt]  -> {
-    exit [expr];
-    i64 [id] = [expr];
+:letter:    -> [a-zA-Z]
+:digit:     -> [0-9]
+:alnum:     -> (:letter:|:digit:)
+:id:        -> :letter:(-|:alnum:)*
+:intlit:    -> digit+
+
+:prog:  -> :stmts:
+:stmts: -> :stmts: :stmt: | ϵ
+:stmt:  -> {
+    exit :expr:;
+    i64 :id: = :expr:;
 }
-[expr]      -> {        // expr -> term -> factor -> expr
-    [expr] + [term]
-    [expr] - [term]
-    [term]
+:expr:      -> {        // expr -> term -> factor -> expr
+    :expr: + :term:
+    :expr: - :term:
+    :term:
 }
 /*
-    [A-expr] -> [term] [G-expr]
-    [G-expr] -> {
-        + [term] [G-expr]
-        - [term] [G-expr]
+    :A-expr: -> :term: :G-expr:
+    :G-expr: -> {
+        + :term: :G-expr:
+        - :term: :G-expr:
         ϵ
     }
 */
-[term]      -> {
-    [term] * [factor]
-    [term] / [factor]
-    [factor]
+:term:      -> {
+    :term: * :factor:
+    :term: / :factor:
+    :factor:
 }
 /*
-    [A-term] -> [factor] [G-term]
-    [G-term] -> {
-        * [factor] [G-term]
-        / [facotr] [G-term]
+    :A-term: -> :factor: :G-term:
+    :G-term: -> {
+        * :factor: :G-term:
+        / :facotr: :G-term:
         ϵ
     }
 */
-[factor]    -> {
-    [intlit]
-    [id]
-    ([expr])
+:factor:    -> {
+    :intlit:
+    :id:
+    (:expr:)
 }
-[id]        -> alpha alnum*
-[intlit]    -> digit+
 
 
 

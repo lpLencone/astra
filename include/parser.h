@@ -5,8 +5,7 @@
 
 #include "astnode.h"
 #include "token.h"
-#include "symbolmap.h"
 
-NodeProg parse(DArrayToken tokens, SymbolMap *sm);
+NodeProg parse(DArrayToken tokens);
 
 #endif // ASTRA_PARSER_H_

@@ -1,9 +1,6 @@
 #include "parser.h"
 
 #include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #include "arena.h"
 #include "lib.h"
@@ -69,10 +66,10 @@ void parse_term_g(Parser *p, NodeTerm *node_term)
 {
     Token tok = parse_next(p);
     switch (tok.kind) {
-        case TokenKind_MulSign:
+        case TokenKind_MulOp:
             node_term->kind = TermKind_Mul;
             break;
-        case TokenKind_DivSign:
+        case TokenKind_DivOp:
             node_term->kind = TermKind_Div;
             break;
         default:
@@ -97,10 +94,10 @@ static void parse_expr_g(Parser *p, NodeExpr *node_expr)
 {
     Token tok = parse_next(p);
     switch (tok.kind) {
-        case TokenKind_AddSign:
+        case TokenKind_AddOp:
             node_expr->kind = ExprKind_Add;
             break;
-        case TokenKind_SubSign:
+        case TokenKind_SubOp:
             node_expr->kind = ExprKind_Sub;
             break;
         default:
@@ -143,20 +140,15 @@ static void parse_eq(Parser *p)
            token_kind_cstr(kind));
 }
 
-static NodeStmt parse_stmt(Parser *p, SymbolMap *sm)
+static NodeStmt parse_stmt(Parser *p)
 {
     Token tok = parse_next(p);
     NodeStmt stmt;
-    if (tok.kind == TokenKind_I64) {
+    if (tok.kind == TokenKind_U64) {
         stmt.kind = StmtKind_Decl;
         stmt.id = parse_id(p);
         parse_eq(p);
         stmt.expr = parse_expr(p);
-        SymbolEntry se = {
-            // TODO: Cannot parse expression everytime
-            .intlit = node_expr_eval(stmt.expr, sm),
-        };
-        symbolmap_put(sm, stmt.id.lexeme, se);
 
     } else if (tok.kind == TokenKind_Exit) {
         stmt.kind = StmtKind_Exit;
@@ -175,14 +167,14 @@ static NodeStmt parse_stmt(Parser *p, SymbolMap *sm)
     return stmt;
 }
 
-NodeProg parse(DArrayToken tokens, SymbolMap *sm)
+NodeProg parse(DArrayToken tokens)
 {
     Parser p = {
         .tokens = tokens,
     };
     NodeProg prog = { 0 };
     while (p.index < p.tokens.length) {
-        NodeStmt stmt = parse_stmt(&p, sm);
+        NodeStmt stmt = parse_stmt(&p);
         da_push(&prog.stmts, &stmt);
     }
     return prog;

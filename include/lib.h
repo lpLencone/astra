@@ -1,6 +1,10 @@
 #ifndef ASTRA_LIB_H_
 #define ASTRA_LIB_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #define eprintf(fmt, ...) fprintf(stderr, fmt __VA_OPT__(, ) __VA_ARGS__)
 #define panic(fmt, ...)                                      \
     do {                                                     \

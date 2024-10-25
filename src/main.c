@@ -1,7 +1,6 @@
 #define _DEFAULT_SOURCE
 
 #include <assert.h>
-#include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
 #include <stdbool.h>
@@ -64,16 +63,14 @@ int main(int argc, char *argv[])
         cli_options.input_filename = argv[optind];
     }
 
-    expect(cli_options.input_filename != NULL, "Usage: ./astrac <input-filename>");
+    expect(cli_options.input_filename != NULL, "Usage: %s <input-filename>", argv[0]);
 
     char *buffer;
     size_t bufferlen;
     file_read_to_cstr(cli_options.input_filename, &buffer, &bufferlen);
 
-    SymbolMap sm = {0};
-    symbolmap_new_map(&sm);
     DArrayToken tokens = lexer_analyse(slice_cstr(buffer));
-    NodeProg prog = parse(tokens, &sm);
+    NodeProg prog = parse(tokens);
     Sprout assembly = generate(&prog);
     printf("%s\n", assembly.data);
 

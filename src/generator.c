@@ -9,7 +9,7 @@
 
 typedef struct {
     SymbolMap sm;
-    int32_t stack_offset;
+    uint32_t stack_offset;
 } Generator;
 
 static void generate_stmt(Generator *g, NodeStmt stmt, Sprout *assembly)
