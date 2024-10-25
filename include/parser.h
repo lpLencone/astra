@@ -5,7 +5,8 @@
 
 #include "astnode.h"
 #include "token.h"
+#include "arena.h"
 
-NodeProg parse(DArrayToken tokens);
+NodeProg parse(DArrayToken tokens, Arena *arena);
 
 #endif // ASTRA_PARSER_H_

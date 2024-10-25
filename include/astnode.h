@@ -1,8 +1,8 @@
 #ifndef ASTRA_ASTNODE_H_
 #define ASTRA_ASTNODE_H_
 
-#include "token.h"
 #include "symbolmap.h"
+#include "token.h"
 
 typedef enum {
     NodeKind_Expr = 1,
@@ -12,16 +12,30 @@ typedef enum {
     NodeKind_Prog,
 } NodeKind;
 
+typedef enum {
+    FactorKind_Int = 1,
+    FactorKind_Id,
+    FactorKind_Expr,
+} FactorKind;
+
+typedef enum {
+    ExprKind_Add = 1,
+    ExprKind_Sub,
+    ExprKind_Term,
+} ExprKind;
+
+typedef enum {
+    TermKind_Mul = 1,
+    TermKind_Div,
+    TermKind_Factor,
+} TermKind;
+
 typedef struct NodeExpr NodeExpr;
 typedef struct NodeTerm NodeTerm;
 typedef struct NodeFactor NodeFactor;
 
 struct NodeFactor {
-    enum {
-        FactorKind_Int = 1,
-        FactorKind_Id,
-        FactorKind_Expr,
-    } kind;
+    FactorKind kind;
     union {
         Token token;
         NodeExpr *expr;
@@ -29,21 +43,13 @@ struct NodeFactor {
 };
 
 struct NodeTerm {
-    enum {
-        TermKind_Mul = 1,
-        TermKind_Div,
-        TermKind_Factor,
-    } kind;
+    TermKind kind;
     NodeTerm *term;
     NodeFactor *factor;
 };
 
 struct NodeExpr {
-    enum {
-        ExprKind_Add = 1,
-        ExprKind_Sub,
-        ExprKind_Term,
-    } kind;
+    ExprKind kind;
     NodeTerm *term;
     NodeExpr *expr;
 };
@@ -60,6 +66,8 @@ typedef struct {
 typedef struct {
     DArray(NodeStmt) stmts;
 } NodeProg;
+
+void print_ast(NodeProg *prog);
 
 char const *node_kind_cstr(NodeKind kind);
 bool node_expr_is_id(NodeExpr *node_expr);

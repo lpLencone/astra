@@ -10,13 +10,13 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "arena.h"
 #include "generator.h"
 #include "lexer.h"
 #include "lib.h"
 #include "parser.h"
 #include "slice.h"
 #include "sprout.h"
-#include "symbolmap.h"
 
 void file_read_to_cstr(char const *filename, char **buffer, size_t *size)
 {
@@ -70,9 +70,11 @@ int main(int argc, char *argv[])
     file_read_to_cstr(cli_options.input_filename, &buffer, &bufferlen);
 
     DArrayToken tokens = lexer_analyse(slice_cstr(buffer));
-    NodeProg prog = parse(tokens);
+    Arena arena = {0};
+    NodeProg prog = parse(tokens, &arena);
     Sprout assembly = generate(&prog);
-    printf("%s\n", assembly.data);
+    arena_free(&arena);
+    // printf("%s\n", assembly.data);
 
     // Write assembly to file
     FILE *fp = fopen("out.asm", "w");

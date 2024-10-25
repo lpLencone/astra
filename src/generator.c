@@ -94,6 +94,8 @@ static void generate_stmt(Generator *g, NodeStmt stmt, Sprout *assembly)
 
 Sprout generate(NodeProg *prog)
 {
+    // print_ast(prog);
+
     Sprout assembly = { 0 };
 
     sprout_push_cstr(&assembly, "global\t_start\n");
@@ -108,6 +110,9 @@ Sprout generate(NodeProg *prog)
         NodeStmt stmt = prog->stmts.data[i];
         generate_stmt(&g, stmt, &assembly);
     }
+
+    symbolmap_free(&g.sm);
+    da_free(&prog->stmts);
 
     return assembly;
 }

@@ -12,6 +12,7 @@ void symbolmap_free(SymbolMap *sm)
     for (size_t i = 0; i < sm->length; i++) {
         hm_free(sm->data + i);
     }
+    da_free(sm);
 }
 
 void symbolmap_new_map(SymbolMap *sm)

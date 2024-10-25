@@ -7,7 +7,7 @@
 
 #include "lib.h"
 
-static char const *const separators = " \n\t;";
+static char const *const separators = " \n\t;()";
 static char const *const whitespace = " \n\t";
 
 DArrayToken lexer_analyse(Slice src)
@@ -15,8 +15,8 @@ DArrayToken lexer_analyse(Slice src)
     DArrayToken tokens = { 0 };
 
     Slice token_lexeme;
-    while (!slice_isnull(
-            (token_lexeme = slice_triml(slice_token(&src, separators), whitespace)))) {
+    while (!slice_isnull(token_lexeme = slice_token(&src, separators))) {
+        token_lexeme = slice_triml(token_lexeme, whitespace);
 
         Token tok = { .lexeme = token_lexeme };
         if (isalpha(*token_lexeme.data)) {
@@ -52,10 +52,12 @@ DArrayToken lexer_analyse(Slice src)
             tok.kind = TokenKind_DivOp;
 
         } else {
-            panic("What is this? \"%.*s\"\n", SLICEFMT(token_lexeme));
+            panic("Invalid token string: \"%.*s\"\n", SLICEFMT(token_lexeme));
         }
 
         da_push(&tokens, &tok);
+
+        src = slice_triml(src, whitespace);
     }
     return tokens;
 }

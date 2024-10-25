@@ -2,26 +2,20 @@
 
 #include <assert.h>
 
-#include "arena.h"
 #include "lib.h"
 #include "token.h"
 
 typedef struct {
     DArrayToken tokens;
     size_t index;
-    Arena arena;
+    Arena *arena;
 } Parser;
 
 #define parser_panic(p, fmt, ...)              \
     do {                                       \
-        parser_free(p);                        \
+        arena_free(p->arena);                  \
         panic(fmt __VA_OPT__(, ) __VA_ARGS__); \
     } while (0)
-
-static void parser_free(Parser *p)
-{
-    arena_free(&p->arena);
-}
 
 static Token parse_next(Parser *p)
 {
@@ -40,7 +34,7 @@ static NodeExpr *parse_expr(Parser *p);
 static NodeFactor *parse_factor(Parser *p)
 {
     Token tok = parse_next(p);
-    NodeFactor *node_factor = arena_alloc(&p->arena, sizeof *node_factor);
+    NodeFactor *node_factor = arena_alloc(p->arena, sizeof *node_factor);
     switch (tok.kind) {
         case TokenKind_IntLit:
             node_factor->kind = FactorKind_Int;
@@ -62,60 +56,64 @@ static NodeFactor *parse_factor(Parser *p)
     return node_factor;
 }
 
-void parse_term_g(Parser *p, NodeTerm *node_term)
+static NodeTerm *parse_term_g(Parser *p, NodeTerm *child)
 {
     Token tok = parse_next(p);
+    TermKind kind;
     switch (tok.kind) {
         case TokenKind_MulOp:
-            node_term->kind = TermKind_Mul;
+            kind = TermKind_Mul;
             break;
         case TokenKind_DivOp:
-            node_term->kind = TermKind_Div;
+            kind = TermKind_Div;
             break;
         default:
-            node_term->kind = TermKind_Factor;
             parse_rewind(p);
-            return;
+            return child;
     }
-    node_term->term = arena_alloc(&p->arena, sizeof *node_term);
-    node_term->term->factor = parse_factor(p);
-    parse_term_g(p, node_term->term);
+    NodeTerm *node_term = arena_alloc(p->arena, sizeof *node_term);
+    node_term->kind = kind;
+    node_term->term = child;
+    node_term->factor = parse_factor(p);
+    return parse_term_g(p, node_term);
 }
 
 static NodeTerm *parse_term(Parser *p)
 {
-    NodeTerm *node_term = arena_alloc(&p->arena, sizeof *node_term);
+    NodeTerm *node_term = arena_alloc(p->arena, sizeof *node_term);
     node_term->factor = parse_factor(p);
-    parse_term_g(p, node_term);
-    return node_term;
+    node_term->kind = TermKind_Factor;
+    return parse_term_g(p, node_term);
 }
 
-static void parse_expr_g(Parser *p, NodeExpr *node_expr)
+static NodeExpr *parse_expr_g(Parser *p, NodeExpr *child)
 {
     Token tok = parse_next(p);
+    ExprKind kind;
     switch (tok.kind) {
         case TokenKind_AddOp:
-            node_expr->kind = ExprKind_Add;
+            kind = ExprKind_Add;
             break;
         case TokenKind_SubOp:
-            node_expr->kind = ExprKind_Sub;
+            kind = ExprKind_Sub;
             break;
         default:
-            node_expr->kind = ExprKind_Term;
             parse_rewind(p);
-            return;
+            return child;
     }
-    node_expr->expr = arena_alloc(&p->arena, sizeof *node_expr->expr);
-    node_expr->expr->term = parse_term(p);
-    parse_expr_g(p, node_expr->expr);
+    NodeExpr *node_expr = arena_alloc(p->arena, sizeof *node_expr);
+    node_expr->kind = kind;
+    node_expr->expr = child;
+    node_expr->term = parse_term(p);
+    return parse_expr_g(p, node_expr);
 }
 
 static NodeExpr *parse_expr(Parser *p)
 {
-    NodeExpr *node_expr = arena_alloc(&p->arena, sizeof *node_expr);
+    NodeExpr *node_expr = arena_alloc(p->arena, sizeof *node_expr);
+    node_expr->kind = ExprKind_Term;
     node_expr->term = parse_term(p);
-    parse_expr_g(p, node_expr);
-    return node_expr;
+    return parse_expr_g(p, node_expr);
 }
 
 static Token parse_id(Parser *p)
@@ -167,14 +165,16 @@ static NodeStmt parse_stmt(Parser *p)
     return stmt;
 }
 
-NodeProg parse(DArrayToken tokens)
+NodeProg parse(DArrayToken tokens, Arena *arena)
 {
     Parser p = {
         .tokens = tokens,
+        .arena = arena,
     };
     NodeProg prog = { 0 };
     while (p.index < p.tokens.length) {
         NodeStmt stmt = parse_stmt(&p);
+        // Use arena to allocate statements
         da_push(&prog.stmts, &stmt);
     }
     return prog;
